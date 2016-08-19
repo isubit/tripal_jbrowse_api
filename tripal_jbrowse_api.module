@@ -1,0 +1,54 @@
+<?php
+
+require_once 'includes/tripal_jbrowse_api.queries.inc';
+
+/**
+ * Implements hook_menu().
+ */
+function tripal_jbrowse_api_menu() {
+  $base = array(
+    'type' => MENU_CALLBACK,
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+    'delivery callback' => 'tripal_jbrowse_api_json_output',
+  );
+  $items['api/jbrowse/link/%tripal_jbrowse_api_organism/refSeqs.json'] = array(
+    'page callback' => 'tripal_jbrowse_api_callback_refseqs',
+    'page arguments' => array(3),
+  ) + $base;
+  return $items;
+}
+
+function tripal_jbrowse_api_json_output($var = NULL) {
+
+  drupal_page_is_cacheable(FALSE);
+
+  drupal_add_http_header('Content-Type', 'application/json; charset=UTF-8');
+  drupal_add_http_header('Access-Control-Allow-Origin', '*');
+  drupal_add_http_header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+
+  if (isset($var)) {
+    echo drupal_json_encode($var);
+  }
+
+  drupal_page_footer();
+
+}
+
+function tripal_jbrowse_api_organism_load($organism_common_name) {
+  return chado_query(TRIPAL_JBROWSE_API_QUERY_ORGANISM_BY_COMMON_NAME, array(':organism_common_name' => $organism_common_name))->fetchObject();
+}
+
+function tripal_jbrowse_api_callback_refseqs($organism) {
+  $results = chado_query(TRIPAL_JBROWSE_API_QUERY_REFSEQ, array(':organism_id' => $organism->organism_id, ':sequence_type' => 'supercontig'));
+  $refseqs = array_map(function($row) {
+    return array(
+      'length' => (int) $row['seqlen'],
+      'name' => $row['name'],
+      'start' => 0,
+      'end' => (int) $row['seqlen'],
+      'seqChunkSize' => 20000,
+    );
+  }, $results->fetchAll(PDO::FETCH_ASSOC));
+  return $refseqs;
+}
