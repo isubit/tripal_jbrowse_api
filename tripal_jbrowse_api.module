@@ -20,6 +20,10 @@ function tripal_jbrowse_api_menu() {
     'page callback' => 'tripal_jbrowse_api_callback_stats',
     'page arguments' => array(2),
   ) + $base;
+  $items['api/jbrowse/%tripal_jbrowse_api_organism/tracks.conf'] = array(
+    'page callback' => 'tripal_jbrowse_api_callback_tracks',
+    'page arguments' => array(2),
+  ) + $base;
   return $items;
 }
 
@@ -59,4 +63,8 @@ function tripal_jbrowse_api_callback_refseqs($organism) {
 
 function tripal_jbrowse_api_callback_stats($organism) {
   return array('featureDensity' => 0.01);
+}
+
+function tripal_jbrowse_api_callback_tracks($organism) {
+  return NULL;
 }
