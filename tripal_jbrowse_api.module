@@ -56,7 +56,7 @@ function tripal_jbrowse_api_organism_load($organism_common_name) {
 }
 
 function tripal_jbrowse_api_callback_refseqs($organism) {
-  $results = chado_query(TRIPAL_JBROWSE_API_QUERY_REFSEQ, array(':organism_id' => $organism->organism_id, ':sequence_type' => 'supercontig'));
+  $results = chado_query(TRIPAL_JBROWSE_API_QUERY_REFSEQ, array(':organism_id' => $organism->organism_id, ':sequence_type' => 'supercontig'))->fetchAll(PDO::FETCH_ASSOC);
   $refseqs = array_map(function($row) {
     return array(
       'length' => (int) $row['seqlen'],
@@ -65,7 +65,7 @@ function tripal_jbrowse_api_callback_refseqs($organism) {
       'end' => (int) $row['seqlen'],
       'seqChunkSize' => 20000,
     );
-  }, $results->fetchAll(PDO::FETCH_ASSOC));
+  }, $results);
   return $refseqs;
 }
 
@@ -79,7 +79,7 @@ function tripal_jbrowse_api_callback_tracks($organism) {
 
 function tripal_jbrowse_api_callback_tracklist($organism) {
 
-  $so_type_results = chado_query(TRIPAL_JBROWSE_API_QUERY_SO_TYPE, array(':organism_id' => $organism->organism_id));
+  $so_type_results = chado_query(TRIPAL_JBROWSE_API_QUERY_SO_TYPE, array(':organism_id' => $organism->organism_id))->fetchAll(PDO::FETCH_ASSOC);
 
   $refseqs_tracks = array(
     array(
@@ -108,7 +108,7 @@ function tripal_jbrowse_api_callback_tracklist($organism) {
       'regionFeatureDensities' => TRUE,
       'storeClass' => 'JBrowse/Store/SeqFeature/REST',
     );
-  }, $so_type_results->fetchAll(PDO::FETCH_ASSOC));
+  }, $so_type_results);
 
   $data = array(
     'refSeqs' => $GLOBALS['base_url'] . '/api/jbrowse/' . $organism->common_name . '/refSeqs.json',
