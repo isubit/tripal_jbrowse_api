@@ -24,6 +24,10 @@ function tripal_jbrowse_api_menu() {
     'page callback' => 'tripal_jbrowse_api_callback_tracks',
     'page arguments' => array(2),
   ) + $base;
+  $items['api/jbrowse/%tripal_jbrowse_api_organism/trackList.json'] = array(
+    'page callback' => 'tripal_jbrowse_api_callback_tracklist',
+    'page arguments' => array(2),
+  ) + $base;
   return $items;
 }
 
@@ -67,4 +71,50 @@ function tripal_jbrowse_api_callback_stats($organism) {
 
 function tripal_jbrowse_api_callback_tracks($organism) {
   return NULL;
+}
+
+function tripal_jbrowse_api_callback_tracklist($organism) {
+
+  $so_type_results = chado_query(TRIPAL_JBROWSE_API_QUERY_SO_TYPE, array(':organism_id' => $organism->organism_id));
+
+  $refseqs_tracks = array(
+    array(
+      'useAsRefSeqStore' => TRUE,
+      'label' => 'ref_seq',
+      'key' => $organism->common_name . ' Reference Sequence',
+      'type' => 'JBrowse/View/Track/Sequence',
+      'storeClass' => 'JBrowse/Store/SeqFeature/REST',
+      'baseUrl' => $GLOBALS['base_url'] . '/api/jbrowse/' . $organism->common_name . '/',
+      'query' => array(
+        'sequence' => TRUE
+      ),
+    )
+  );
+
+  $so_tracks = array_map(function($row) use($organism) {
+    return array(
+      'category' => 'Generic SO Type Tracks',
+      'label' => $organism->common_name . '_' . $row['type'],
+      'type' => 'JBrowse/View/Track/HTMLFeatures',
+      'trackType' => 'JBrowse/View/Track/HTMLFeatures',
+      'key' => $row['type'],
+      'query' => array(
+        'soType' => $row['type']
+      ),
+      'regionFeatureDensities' => TRUE,
+      'storeClass' => 'JBrowse/Store/SeqFeature/REST',
+    );
+  }, $so_type_results->fetchAll(PDO::FETCH_ASSOC));
+
+  $data = array(
+    'refSeqs' => $GLOBALS['base_url'] . '/api/jbrowse/' . $organism->common_name . '/refSeqs.json',
+    'names' => array(
+      'type' => 'REST',
+      'url' => $GLOBALS['base_url'] . '/api/jbrowse/names',
+    ),
+    'tracks' => array_merge($refseqs_tracks, $so_tracks),
+  );
+
+  return $data;
+  
 }
