@@ -52,12 +52,12 @@ const TRIPAL_JBROWSE_API_QUERY_SIMPLE_FEATURE_QUERY_WITH_PARENT = <<<'EOQ'
         WHERE
             (feature.organism_id = :organism_id)
             AND
-            -- with queried seqid
+            /* with queried seqid */
             (featureloc.srcfeature_id IN (SELECT feature_id FROM {feature} WHERE uniquename = :refseq))
             AND
-            -- within queried region
+            /* within queried region */
             (featureloc.fmin <= :end AND :start <= featureloc.fmax)
-            -- top level only
+            /* top level only */
             AND cvterm.name = :soType
     UNION ALL
         SELECT
@@ -110,7 +110,7 @@ const TRIPAL_JBROWSE_API_QUERY_REFSEQ_SEQ = <<<'EOQ'
     WHERE
         uniquename = :refseq
         AND
-        feature.organism_id IN :organism_id
+        feature.organism_id = :organism_id
         AND
         residues is not NULL
     ;

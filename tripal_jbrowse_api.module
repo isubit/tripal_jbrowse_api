@@ -20,6 +20,10 @@ function tripal_jbrowse_api_menu() {
     'page callback' => 'tripal_jbrowse_api_callback_stats',
     'page arguments' => array(2),
   ) + $base;
+  $items['api/jbrowse/%tripal_jbrowse_api_organism/features/%'] = array(
+    'page callback' => 'tripal_jbrowse_api_callback_features',
+    'page arguments' => array(2, 4),
+  ) + $base;
   $items['api/jbrowse/%tripal_jbrowse_api_organism/tracks.conf'] = array(
     'page callback' => 'tripal_jbrowse_api_callback_tracks',
     'page arguments' => array(2),
@@ -117,4 +121,95 @@ function tripal_jbrowse_api_callback_tracklist($organism) {
 
   return $data;
   
+}
+
+function tripal_jbrowse_api_callback_features($organism, $refseq) {
+
+  $params = drupal_get_query_parameters();
+  $start = (!empty($params['start'])) ? (int) $params['start'] : 0;
+  $end = (!empty($params['end'])) ? (int) $params['end'] : 0;
+
+  if ($end < $start) {
+    drupal_add_http_header('Status', '400 Bad Request');
+    return NULL;
+  }
+
+  if (!empty($params['sequence']) && $params['sequence'] === 'true') {
+    return tripal_jbrowse_api_callback_features_sequence($organism, $refseq, $start, $end);
+  } else {
+    return tripal_jbrowse_api_callback_features_features($organism, $refseq, $start, $end);
+  }
+
+}
+
+function tripal_jbrowse_api_callback_features_sequence($organism, $refseq, $start, $end) {
+  
+  $result = chado_query(TRIPAL_JBROWSE_API_QUERY_REFSEQ_SEQ, array(':organism_id' => $organism->organism_id, ':refseq' => $refseq, ':start' => $start, ':end' => $end - $start))->fetchAssoc();
+
+  if (empty($result['seq'])) {
+    drupal_add_http_header('Status', '400 Bad Request');
+    return NULL;
+  }
+
+  $data = array(
+    'features' => array(
+      array(
+        'start' => $start,
+        'seq' => $result['seq'],
+        'end' => $end,
+      )
+    )
+  );
+
+  return $data;
+
+}
+
+function tripal_jbrowse_api_callback_features_features($organism, $refseq, $start, $end) {
+
+  $params = drupal_get_query_parameters();
+
+  if (empty($params['soType'])) {
+    drupal_add_http_header('Status', '400 Bad Request');
+    return NULL;
+  }
+
+  $so_type = $params['soType'];
+
+  $results = chado_query(TRIPAL_JBROWSE_API_QUERY_SIMPLE_FEATURE_QUERY_WITH_PARENT, array(':organism_id' => $organism->organism_id, ':refseq' => $refseq, ':start' => $start, ':end' => $end, ':soType' => $so_type))->fetchAll(PDO::FETCH_ASSOC);
+
+  $top_level = array();
+  $children = array();
+
+  foreach ($results as $row) {
+
+    $feature = array(
+      'type' => $row['feature_type'],
+      'start'=> (int) $row['feature_fmin'],
+      'end' => (int) $row['feature_fmax'],
+      'strand'=> (int) $row['feature_strand'],
+      'name' => (!empty($row['feature_name'])) ? $row['feature_name'] : '(unnamed)',
+      'uniqueID'=> $row['feature_uniquename'],
+      'score' => 0,
+      'subfeatures' => array(),
+    );
+
+    if ($feature['type'] === $so_type) {
+      $top_level[(int) $row['xfeature_id']] = $feature;
+    } else {
+      $children[(int) $row['parent_id']][] = $feature;
+    }
+
+  }
+
+  foreach ($children as $parent_id => $child_features) {
+    $top_level[$parent_id]['subfeatures'] = $child_features;
+  }
+
+  $data = array(
+    'features' => array_values($top_level),
+  );
+
+  return $data;
+
 }
