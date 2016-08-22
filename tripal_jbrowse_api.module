@@ -12,9 +12,9 @@ function tripal_jbrowse_api_menu() {
     'access arguments' => array('access content'),
     'delivery callback' => 'tripal_jbrowse_api_json_output',
   );
-  $items['api/jbrowse/link/%tripal_jbrowse_api_organism/refSeqs.json'] = array(
+  $items['api/jbrowse/%tripal_jbrowse_api_organism/refSeqs.json'] = array(
     'page callback' => 'tripal_jbrowse_api_callback_refseqs',
-    'page arguments' => array(3),
+    'page arguments' => array(2),
   ) + $base;
   return $items;
 }
