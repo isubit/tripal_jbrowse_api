@@ -16,6 +16,10 @@ function tripal_jbrowse_api_menu() {
     'page callback' => 'tripal_jbrowse_api_callback_refseqs',
     'page arguments' => array(2),
   ) + $base;
+  $items['api/jbrowse/%tripal_jbrowse_api_organism/stats/global'] = array(
+    'page callback' => 'tripal_jbrowse_api_callback_stats',
+    'page arguments' => array(2),
+  ) + $base;
   return $items;
 }
 
@@ -51,4 +55,8 @@ function tripal_jbrowse_api_callback_refseqs($organism) {
     );
   }, $results->fetchAll(PDO::FETCH_ASSOC));
   return $refseqs;
+}
+
+function tripal_jbrowse_api_callback_stats($organism) {
+  return array('featureDensity' => 0.01);
 }
