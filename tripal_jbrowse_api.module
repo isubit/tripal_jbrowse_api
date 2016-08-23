@@ -18,33 +18,41 @@ function tripal_jbrowse_api_permission() {
  * Implements hook_menu().
  */
 function tripal_jbrowse_api_menu() {
+
   $base = array(
     'type' => MENU_CALLBACK,
     'access callback' => 'user_access',
     'access arguments' => array('use jbrowse api'),
     'delivery callback' => 'tripal_jbrowse_api_json_output',
   );
+
   $items['api/jbrowse/%tripal_jbrowse_api_organism/refSeqs.json'] = array(
     'page callback' => 'tripal_jbrowse_api_callback_refseqs',
     'page arguments' => array(2),
   ) + $base;
+
   $items['api/jbrowse/%tripal_jbrowse_api_organism/stats/global'] = array(
     'page callback' => 'tripal_jbrowse_api_callback_stats',
     'page arguments' => array(2),
   ) + $base;
+
   $items['api/jbrowse/%tripal_jbrowse_api_organism/features/%'] = array(
     'page callback' => 'tripal_jbrowse_api_callback_features',
     'page arguments' => array(2, 4),
   ) + $base;
+
   $items['api/jbrowse/%tripal_jbrowse_api_organism/tracks.conf'] = array(
     'page callback' => 'tripal_jbrowse_api_callback_tracks',
     'page arguments' => array(2),
   ) + $base;
+
   $items['api/jbrowse/%tripal_jbrowse_api_organism/trackList.json'] = array(
     'page callback' => 'tripal_jbrowse_api_callback_tracklist',
     'page arguments' => array(2),
   ) + $base;
+
   return $items;
+
 }
 
 function tripal_jbrowse_api_json_output($var = NULL) {
@@ -68,7 +76,9 @@ function tripal_jbrowse_api_organism_load($organism_common_name) {
 }
 
 function tripal_jbrowse_api_callback_refseqs($organism) {
+
   $results = chado_query(TRIPAL_JBROWSE_API_QUERY_REFSEQ, array(':organism_id' => $organism->organism_id, ':sequence_type' => 'supercontig'))->fetchAll(PDO::FETCH_ASSOC);
+
   $refseqs = array_map(function($row) {
     return array(
       'length' => (int) $row['seqlen'],
