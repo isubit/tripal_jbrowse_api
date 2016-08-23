@@ -200,8 +200,7 @@ function tripal_jbrowse_api_callback_features_features($organism, $refseq, $star
 
   $results = chado_query(TRIPAL_JBROWSE_API_QUERY_SIMPLE_FEATURE_QUERY_WITH_PARENT, array(':organism_id' => $organism->organism_id, ':refseq' => $refseq, ':start' => $start, ':end' => $end, ':soType' => $so_type))->fetchAll(PDO::FETCH_ASSOC);
 
-  $top_level = array();
-  $children = array();
+  $features = array();
 
   foreach ($results as $row) {
 
@@ -217,20 +216,19 @@ function tripal_jbrowse_api_callback_features_features($organism, $refseq, $star
     );
 
     if ($feature['type'] === $so_type) {
-      $top_level[(int) $row['xfeature_id']] = $feature;
+      if (!empty($features[$row['xfeature_id']]['subfeatures'])) {
+        $feature['subfeatures'] = $features[$row['xfeature_id']]['subfeatures'];
+      }
+      $features[$row['xfeature_id']] = $feature;
     } else {
-      $children[(int) $row['parent_id']][] = $feature;
+      $features[$row['parent_id']]['subfeatures'][] = $feature;
     }
 
   }
 
-  foreach ($children as $parent_id => $child_features) {
-    $top_level[$parent_id]['subfeatures'] = $child_features;
-  }
+  $data = array();
 
-  $data = array(
-    'features' => array_values($top_level),
-  );
+  $data['features'] = array_values($features);
 
   return $data;
 
