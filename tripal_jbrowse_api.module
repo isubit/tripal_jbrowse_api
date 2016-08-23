@@ -88,7 +88,11 @@ function tripal_jbrowse_api_callback_refseqs($organism) {
       'seqChunkSize' => 20000,
     );
   }, $results);
-  return $refseqs;
+
+  $data = $refseqs;
+
+  return $data;
+  
 }
 
 function tripal_jbrowse_api_callback_stats($organism) {
@@ -101,21 +105,21 @@ function tripal_jbrowse_api_callback_tracks($organism) {
 
 function tripal_jbrowse_api_callback_tracklist($organism) {
 
-  $so_type_results = chado_query(TRIPAL_JBROWSE_API_QUERY_SO_TYPE, array(':organism_id' => $organism->organism_id))->fetchAll(PDO::FETCH_ASSOC);
+  $refseqs_tracks = array();
 
-  $refseqs_tracks = array(
-    array(
-      'useAsRefSeqStore' => TRUE,
-      'label' => 'ref_seq',
-      'key' => $organism->common_name . ' Reference Sequence',
-      'type' => 'JBrowse/View/Track/Sequence',
-      'storeClass' => 'JBrowse/Store/SeqFeature/REST',
-      'baseUrl' => $GLOBALS['base_url'] . '/api/jbrowse/' . $organism->common_name . '/',
-      'query' => array(
-        'sequence' => TRUE
-      ),
-    )
+  $refseqs_tracks[] =  array(
+    'useAsRefSeqStore' => TRUE,
+    'label' => 'ref_seq',
+    'key' => $organism->common_name . ' Reference Sequence',
+    'type' => 'JBrowse/View/Track/Sequence',
+    'storeClass' => 'JBrowse/Store/SeqFeature/REST',
+    'baseUrl' => $GLOBALS['base_url'] . '/api/jbrowse/' . $organism->common_name . '/',
+    'query' => array(
+      'sequence' => TRUE
+    ),
   );
+
+  $results = chado_query(TRIPAL_JBROWSE_API_QUERY_SO_TYPE, array(':organism_id' => $organism->organism_id))->fetchAll(PDO::FETCH_ASSOC);
 
   $so_tracks = array_map(function($row) use($organism) {
     return array(
@@ -130,7 +134,7 @@ function tripal_jbrowse_api_callback_tracklist($organism) {
       'regionFeatureDensities' => TRUE,
       'storeClass' => 'JBrowse/Store/SeqFeature/REST',
     );
-  }, $so_type_results);
+  }, $results);
 
   $data = array(
     'refSeqs' => $GLOBALS['base_url'] . '/api/jbrowse/' . $organism->common_name . '/refSeqs.json',
@@ -173,14 +177,12 @@ function tripal_jbrowse_api_callback_features_sequence($organism, $refseq, $star
     return NULL;
   }
 
-  $data = array(
-    'features' => array(
-      array(
-        'start' => $start,
-        'seq' => $result['seq'],
-        'end' => $end,
-      )
-    )
+  $data = array();
+
+  $data['features'][] = array(
+    'start' => $start,
+    'seq' => $result['seq'],
+    'end' => $end,
   );
 
   return $data;
