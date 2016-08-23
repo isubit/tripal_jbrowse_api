@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * Implements hook_requirements().
+ */
+function tripal_jbrowse_api_requirements($phase) {
+
+  $requirements = array();
+
+  if ($phase == 'install') {
+
+    // EXPLANATION: It is essential that Chado be installed for almost all
+    // Tripal modules. Therefore, the following code checks to ensure Chado is
+    // installed and available. If your module does not require that Chado be
+    // installed, you can remove the following check.
+
+    // make sure chado is installed
+    if (empty($GLOBALS["chado_is_installed"])) {
+      $requirements['tripal_jbrowse_api'] = array(
+        'title' => "tripal_jbrowse_api",
+        'value' => "ERROR: Chado must be installed before this module can be enabled",
+        'severity' => REQUIREMENT_ERROR,
+      );
+    }
+
+  }
+
+  return $requirements;
+
+}
