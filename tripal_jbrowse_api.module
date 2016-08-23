@@ -3,13 +3,25 @@
 require_once 'includes/tripal_jbrowse_api.queries.inc';
 
 /**
+ * Implements hook_permission().
+ */
+function tripal_jbrowse_api_permission() {
+  return array(
+    'use jbrowse api' => array(
+      'title' => t('Use JBrowse API'),
+      'description' => t('Allows the user to access to the JBrowse-compatible REST API to the Chado database.'),
+    ),
+  );
+}
+
+/**
  * Implements hook_menu().
  */
 function tripal_jbrowse_api_menu() {
   $base = array(
     'type' => MENU_CALLBACK,
     'access callback' => 'user_access',
-    'access arguments' => array('access content'),
+    'access arguments' => array('use jbrowse api'),
     'delivery callback' => 'tripal_jbrowse_api_json_output',
   );
   $items['api/jbrowse/%tripal_jbrowse_api_organism/refSeqs.json'] = array(
