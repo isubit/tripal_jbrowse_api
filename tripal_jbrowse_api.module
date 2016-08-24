@@ -136,14 +136,18 @@ function tripal_jbrowse_api_callback_tracklist($organism) {
     );
   }, $results);
 
+  $other_tracks = module_invoke_all('jbrowse_tracks', $organism);
+
   $data = array(
     'refSeqs' => $GLOBALS['base_url'] . '/api/jbrowse/' . $organism->common_name . '/refSeqs.json',
     'names' => array(
       'type' => 'REST',
       'url' => $GLOBALS['base_url'] . '/api/jbrowse/names',
     ),
-    'tracks' => array_merge($refseqs_tracks, $so_tracks),
+    'tracks' => array_merge($refseqs_tracks, $so_tracks, $other_tracks),
   );
+
+  drupal_alter('jbrowse_tracklist', $data, clone $organism);
 
   return $data;
   
