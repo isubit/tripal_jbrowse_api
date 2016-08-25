@@ -1,6 +1,6 @@
 # tripal_jbrowse_api
 
-A Drupal module that exposes a JBrowse-compatible REST API for Tripal
+A Tripal module that exposes Chado as a JBrowse-compatible REST API
 
 Based on https://github.com/erasche/chado-jbrowse-connector
 
