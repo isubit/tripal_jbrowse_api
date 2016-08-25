@@ -77,7 +77,11 @@ function tripal_jbrowse_api_organism_load($organism_common_name) {
 
 function tripal_jbrowse_api_callback_refseqs($organism) {
 
-  $results = chado_query(TRIPAL_JBROWSE_API_QUERY_REFSEQ, array(':organism_id' => $organism->organism_id, ':sequence_type' => 'supercontig'))->fetchAll(PDO::FETCH_ASSOC);
+  $results = chado_query(TRIPAL_JBROWSE_API_QUERY_REFSEQ, array(':organism_id' => $organism->organism_id, ':sequence_type' => 'chromosome'))->fetchAll(PDO::FETCH_ASSOC);
+
+  if (empty($results)) {
+    $results = chado_query(TRIPAL_JBROWSE_API_QUERY_REFSEQ, array(':organism_id' => $organism->organism_id, ':sequence_type' => 'supercontig'))->fetchAll(PDO::FETCH_ASSOC);
+  }
 
   $refseqs = array_map(function($row) {
     return array(
