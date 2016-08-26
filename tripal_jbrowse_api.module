@@ -55,7 +55,7 @@ function tripal_jbrowse_api_menu() {
 
 }
 
-function tripal_jbrowse_api_json_output($var = NULL) {
+function tripal_jbrowse_api_json_output($page_callback_result = NULL) {
 
   drupal_page_is_cacheable(FALSE);
 
@@ -63,11 +63,24 @@ function tripal_jbrowse_api_json_output($var = NULL) {
   drupal_add_http_header('Access-Control-Allow-Origin', '*');
   drupal_add_http_header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
 
-  if (isset($var)) {
-    echo drupal_json_encode($var);
+  // Menu status constants are integers; page content is a string or array.
+  if (is_int($page_callback_result)) {
+    switch ($page_callback_result) {
+      case MENU_NOT_FOUND:
+        drupal_add_http_header('Status', '404 Not Found');
+        break;
+      case MENU_ACCESS_DENIED:
+        drupal_add_http_header('Status', '403 Forbidden');
+        break;
+      case MENU_SITE_OFFLINE:
+        drupal_add_http_header('Status', '503 Service unavailable');
+        break;
+    }
+  } elseif (isset($page_callback_result)) {
+    echo drupal_json_encode($page_callback_result);
   }
 
-  drupal_page_footer();
+  ajax_footer();
 
 }
 
