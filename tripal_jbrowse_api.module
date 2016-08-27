@@ -9,7 +9,7 @@ function tripal_jbrowse_api_permission() {
   return array(
     'use jbrowse api' => array(
       'title' => t('Use JBrowse API'),
-      'description' => t('Allows the user to access to the JBrowse-compatible REST API to the Chado database.'),
+      'description' => t('Allows the user to access the JBrowse-compatible REST API to the Chado database.'),
     ),
   );
 }
