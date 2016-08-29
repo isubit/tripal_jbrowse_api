@@ -23,35 +23,63 @@ function tripal_jbrowse_api_menu() {
     'type' => MENU_CALLBACK,
     'access callback' => 'user_access',
     'access arguments' => array('use jbrowse api'),
+    'page callback' => 'tripal_jbrowse_api_router',
     'delivery callback' => 'tripal_jbrowse_api_json_output',
   );
 
   $items['api/jbrowse/%tripal_jbrowse_api_organism/refSeqs.json'] = array(
-    'page callback' => 'tripal_jbrowse_api_callback_refseqs',
-    'page arguments' => array(2),
+    'page arguments' => array('tripal_jbrowse_api_callback_refseqs', 2),
   ) + $base;
 
   $items['api/jbrowse/%tripal_jbrowse_api_organism/stats/global'] = array(
-    'page callback' => 'tripal_jbrowse_api_callback_stats',
-    'page arguments' => array(2),
+    'page arguments' => array('tripal_jbrowse_api_callback_stats', 2),
   ) + $base;
 
   $items['api/jbrowse/%tripal_jbrowse_api_organism/features/%'] = array(
-    'page callback' => 'tripal_jbrowse_api_callback_features',
-    'page arguments' => array(2, 4),
+    'page arguments' => array('tripal_jbrowse_api_callback_features', 2, 4),
   ) + $base;
 
   $items['api/jbrowse/%tripal_jbrowse_api_organism/tracks.conf'] = array(
-    'page callback' => 'tripal_jbrowse_api_callback_tracks',
-    'page arguments' => array(2),
+    'page arguments' => array('tripal_jbrowse_api_callback_tracks', 2),
   ) + $base;
 
   $items['api/jbrowse/%tripal_jbrowse_api_organism/trackList.json'] = array(
-    'page callback' => 'tripal_jbrowse_api_callback_tracklist',
-    'page arguments' => array(2),
+    'page arguments' => array('tripal_jbrowse_api_callback_tracklist', 2),
   ) + $base;
 
   return $items;
+
+}
+
+function tripal_jbrowse_api_router() {
+
+  if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+
+    if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD']) && $_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'] == 'GET' && isset($_SERVER['HTTP_ORIGIN'])) {
+      drupal_add_http_header('Access-Control-Allow-Origin', '*');
+      drupal_add_http_header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+      drupal_add_http_header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    }
+
+    return NULL;
+
+  } elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
+
+    drupal_add_http_header('Access-Control-Allow-Origin', '*');
+    drupal_add_http_header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    drupal_add_http_header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+
+    $args = func_get_args();
+    $page_callback = array_shift($args);
+
+    return call_user_func_array($page_callback, $args);
+
+  } else {
+
+    drupal_add_http_header('Status', '501 Not Implemented');
+    return NULL;
+
+  }
 
 }
 
@@ -60,8 +88,6 @@ function tripal_jbrowse_api_json_output($page_callback_result = NULL) {
   drupal_page_is_cacheable(FALSE);
 
   drupal_add_http_header('Content-Type', 'application/json; charset=UTF-8');
-  drupal_add_http_header('Access-Control-Allow-Origin', '*');
-  drupal_add_http_header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
 
   // Menu status constants are integers; page content is a string or array.
   if (is_int($page_callback_result)) {
