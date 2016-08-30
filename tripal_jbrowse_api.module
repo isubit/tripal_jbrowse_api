@@ -27,6 +27,10 @@ function tripal_jbrowse_api_menu() {
     'delivery callback' => 'tripal_jbrowse_api_json_output',
   );
 
+  $items['api/jbrowse/trackList.json'] = array(
+    'page arguments' => array('tripal_jbrowse_api_callback_datasets'),
+  ) + $base;
+
   $items['api/jbrowse/%tripal_jbrowse_api_organism/refSeqs.json'] = array(
     'page arguments' => array('tripal_jbrowse_api_callback_refseqs', 2),
   ) + $base;
@@ -114,6 +118,31 @@ function tripal_jbrowse_api_organism_load($organism_common_name) {
   return chado_query(TRIPAL_JBROWSE_API_QUERY_ORGANISM_BY_COMMON_NAME, array(':organism_common_name' => $organism_common_name))->fetchObject();
 }
 
+function tripal_jbrowse_api_callback_datasets() {
+
+  $results = chado_query(TRIPAL_JBROWSE_API_QUERY_ALL_ORGANISMS)->fetchAll(PDO::FETCH_ASSOC);
+
+  $datasets = array();
+
+  foreach ($results as $row) {
+
+    $dataset = array(
+      'name' => $row['common_name'],
+      'url' => '?data=' . $GLOBALS['base_url'] . '/api/jbrowse/' . $row['common_name'],
+    );
+
+    $datasets[$row['organism_id']] = $dataset;
+
+  }
+
+  $data = array(
+    'datasets' => $datasets,
+  );
+
+  return $data;
+
+}
+
 function tripal_jbrowse_api_callback_refseqs($organism) {
 
   $results = chado_query(TRIPAL_JBROWSE_API_QUERY_REFSEQ, array(':organism_id' => $organism->organism_id, ':sequence_type' => 'chromosome'))->fetchAll(PDO::FETCH_ASSOC);
@@ -181,14 +210,13 @@ function tripal_jbrowse_api_callback_tracklist($organism) {
 
   $other_tracks = module_invoke_all('jbrowse_tracks', $organism);
 
+  $datasets = tripal_jbrowse_api_callback_datasets();
+
   $data = array(
+    'dataset_id' => $organism->organism_id,
     'refSeqs' => $GLOBALS['base_url'] . '/api/jbrowse/' . $organism->common_name . '/refSeqs.json',
-//    'names' => array(
-//      'type' => 'REST',
-//      'url' => $GLOBALS['base_url'] . '/api/jbrowse/names',
-//    ),
     'tracks' => array_merge($refseqs_tracks, $so_tracks, $other_tracks),
-  );
+  ) + $datasets;
 
   drupal_alter('jbrowse_tracklist', $data, clone $organism);
 
