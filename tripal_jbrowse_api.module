@@ -27,6 +27,10 @@ function tripal_jbrowse_api_menu() {
     'delivery callback' => 'tripal_jbrowse_api_json_output',
   );
 
+  $items['api/jbrowse/tracks.conf'] = array(
+    'page arguments' => array('tripal_jbrowse_api_callback_null'),
+  ) + $base;
+
   $items['api/jbrowse/trackList.json'] = array(
     'page arguments' => array('tripal_jbrowse_api_callback_datasets'),
   ) + $base;
@@ -44,7 +48,7 @@ function tripal_jbrowse_api_menu() {
   ) + $base;
 
   $items['api/jbrowse/%tripal_jbrowse_api_organism/tracks.conf'] = array(
-    'page arguments' => array('tripal_jbrowse_api_callback_tracks', 2),
+    'page arguments' => array('tripal_jbrowse_api_callback_null'),
   ) + $base;
 
   $items['api/jbrowse/%tripal_jbrowse_api_organism/trackList.json'] = array(
@@ -118,6 +122,10 @@ function tripal_jbrowse_api_organism_load($organism_common_name) {
   return chado_query(TRIPAL_JBROWSE_API_QUERY_ORGANISM_BY_COMMON_NAME, array(':organism_common_name' => $organism_common_name))->fetchObject();
 }
 
+function tripal_jbrowse_api_callback_null() {
+  return NULL;
+}
+
 function tripal_jbrowse_api_callback_datasets() {
 
   $results = chado_query(TRIPAL_JBROWSE_API_QUERY_ALL_ORGANISMS)->fetchAll(PDO::FETCH_ASSOC);
@@ -169,10 +177,6 @@ function tripal_jbrowse_api_callback_refseqs($organism) {
 
 function tripal_jbrowse_api_callback_stats($organism) {
   return array('featureDensity' => 0.01);
-}
-
-function tripal_jbrowse_api_callback_tracks($organism) {
-  return NULL;
 }
 
 function tripal_jbrowse_api_callback_tracklist($organism) {
