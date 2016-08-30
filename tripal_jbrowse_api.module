@@ -135,7 +135,7 @@ function tripal_jbrowse_api_callback_datasets() {
   foreach ($results as $row) {
 
     $dataset = array(
-      'name' => $row['common_name'],
+      'name' => sprintf('%s %s (%s)', $row['genus'], $row['species'], $row['common_name']),
       'url' => '?data=' . $GLOBALS['base_url'] . '/api/jbrowse/' . $row['common_name'],
     );
 
