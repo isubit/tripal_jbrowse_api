@@ -8,7 +8,7 @@ Based on https://github.com/erasche/chado-jbrowse-connector
 
 1. Install this module on your Tripal site
 2. Visit `admin/people/permissions` on your site and give the **Use JBrowse API** permission to all roles (including anonymous users).
-3. Go to <http://jbrowse.org/code/latest-release/?data=http://yourtripalsite.com/api/jbrowse/> to see all the tracks that were automatically created from your Chado features table!
+3. Go to <http://jbrowse.org/code/latest-release/?data=http://yourtripalsite.com/api/jbrowse> to see all the tracks that were automatically created from your Chado features table!
 
 # Customizing Permissions
 
