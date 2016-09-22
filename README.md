@@ -12,7 +12,7 @@ Based on https://github.com/erasche/chado-jbrowse-connector
 
 # Customizing Permissions
 
-Access to the API can be limited to authenticated users by removing the **Use JBrowse API** permission from the 'anonymouse user' role on the `admin/people/permissions` page. Please note that if you do this external JBrowse instances not hosted on the same server as your Tripal site will not be able access the data.
+Access to the API can be limited to authenticated users by removing the **Use JBrowse API** permission from the 'anonymous user' role on the `admin/people/permissions` page. Please note that if you do this external JBrowse instances not hosted on the same server as your Tripal site will not be able access the data.
 
 # Adding custom tracks
 
