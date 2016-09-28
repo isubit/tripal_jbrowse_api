@@ -201,8 +201,8 @@ function tripal_jbrowse_api_callback_tracklist($organism) {
     return array(
       'category' => 'Generic SO Type Tracks',
       'label' => $organism->common_name . '_' . $row['type'],
-      'type' => 'JBrowse/View/Track/HTMLFeatures',
-      'trackType' => 'JBrowse/View/Track/HTMLFeatures',
+      'type' => 'JBrowse/View/Track/CanvasFeatures',
+      'trackType' => 'JBrowse/View/Track/CanvasFeatures',
       'key' => $row['type'],
       'query' => array(
         'soType' => $row['type']
