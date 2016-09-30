@@ -165,7 +165,6 @@ function tripal_jbrowse_api_callback_refseqs($organism) {
       'name' => $row['name'],
       'start' => 0,
       'end' => (int) $row['seqlen'],
-      'seqChunkSize' => 20000,
     );
   }, $results);
 
@@ -176,17 +175,18 @@ function tripal_jbrowse_api_callback_refseqs($organism) {
 }
 
 function tripal_jbrowse_api_callback_stats($organism) {
-  return array('featureDensity' => 0.01);
+  return array('featureDensity' => 0.0001);
 }
 
 function tripal_jbrowse_api_callback_tracklist($organism) {
 
-  $refseqs_tracks = array();
+  $tracks = array();
 
-  $refseqs_tracks[] =  array(
+  $tracks[] =  array(
+    'category' => 'Assembly - ' . $organism->common_name,
     'useAsRefSeqStore' => TRUE,
-    'label' => 'ref_seq',
-    'key' => $organism->common_name . ' Reference Sequence',
+    'label' => 'refseq',
+    'key' => 'Reference Sequence',
     'type' => 'JBrowse/View/Track/Sequence',
     'storeClass' => 'JBrowse/Store/SeqFeature/REST',
     'baseUrl' => $GLOBALS['base_url'] . '/api/jbrowse/' . $organism->common_name . '/',
@@ -195,22 +195,14 @@ function tripal_jbrowse_api_callback_tracklist($organism) {
     ),
   );
 
-  $results = chado_query(TRIPAL_JBROWSE_API_QUERY_SO_TYPE, array(':organism_id' => $organism->organism_id))->fetchAll(PDO::FETCH_ASSOC);
-
-  $so_tracks = array_map(function($row) use($organism) {
-    return array(
-      'category' => 'Generic SO Type Tracks',
-      'label' => $organism->common_name . '_' . $row['type'],
-      'type' => 'JBrowse/View/Track/CanvasFeatures',
-      'trackType' => 'JBrowse/View/Track/CanvasFeatures',
-      'key' => $row['type'],
-      'query' => array(
-        'soType' => $row['type']
-      ),
-      'regionFeatureDensities' => TRUE,
-      'storeClass' => 'JBrowse/Store/SeqFeature/REST',
-    );
-  }, $results);
+  $tracks[] = array(
+    'category' => 'Genes',
+    'label' => 'genes',
+    'key' => $organism->common_name . ' gene models',
+    'type' => 'JBrowse/View/Track/CanvasFeatures',
+    'trackType' => 'JBrowse/View/Track/CanvasFeatures',
+    'storeClass' => 'JBrowse/Store/SeqFeature/REST',
+  );
 
   $other_tracks = module_invoke_all('jbrowse_tracks', $organism);
 
@@ -218,8 +210,9 @@ function tripal_jbrowse_api_callback_tracklist($organism) {
 
   $data = array(
     'dataset_id' => $organism->organism_id,
+    'defaultTracks' => 'genes',
     'refSeqs' => $GLOBALS['base_url'] . '/api/jbrowse/' . $organism->common_name . '/refSeqs.json',
-    'tracks' => array_merge($refseqs_tracks, $so_tracks, $other_tracks),
+    'tracks' => array_merge($tracks, $other_tracks),
   ) + $datasets;
 
   drupal_alter('jbrowse_tracklist', $data, clone $organism);
@@ -270,46 +263,56 @@ function tripal_jbrowse_api_callback_features_sequence($organism, $refseq, $star
 
 function tripal_jbrowse_api_callback_features_features($organism, $refseq, $start, $end) {
 
-  $params = drupal_get_query_parameters();
-
-  if (empty($params['soType'])) {
-    drupal_add_http_header('Status', '400 Bad Request');
-    return NULL;
-  }
-
-  $so_type = $params['soType'];
-
-  $results = chado_query(TRIPAL_JBROWSE_API_QUERY_SIMPLE_FEATURE_QUERY_WITH_PARENT, array(':organism_id' => $organism->organism_id, ':refseq' => $refseq, ':start' => $start, ':end' => $end, ':soType' => $so_type))->fetchAll(PDO::FETCH_ASSOC);
+  $results = chado_query(TRIPAL_JBROWSE_API_QUERY_SIMPLE_FEATURE_QUERY_WITH_PARENT, array(':organism_id' => $organism->organism_id, ':refseq' => $refseq, ':start' => $start, ':end' => $end, ':soType' => 'gene'))->fetchAll(PDO::FETCH_ASSOC);
 
   $features = array();
+  $genes = array();
+  $subfeatures = array();
 
   foreach ($results as $row) {
+    
+    $feature_id = $row['xfeature_id'];
+    $parent_id = $row['parent_id'];
 
     $feature = array(
       'type' => $row['feature_type'],
       'start'=> (int) $row['feature_fmin'],
       'end' => (int) $row['feature_fmax'],
-      'strand'=> (int) $row['feature_strand'],
-      'name' => (!empty($row['feature_name'])) ? $row['feature_name'] : '(unnamed)',
       'uniqueID'=> $row['feature_uniquename'],
-      'score' => 0,
-      'subfeatures' => array(),
+      'strand' => (int) $row['feature_strand'],
+      'name' => (!empty($row['feature_name'])) ? $row['feature_name'] : '(unnamed)',
     );
 
-    if ($feature['type'] === $so_type) {
-      if (!empty($features[$row['xfeature_id']]['subfeatures'])) {
-        $feature['subfeatures'] = $features[$row['xfeature_id']]['subfeatures'];
-      }
-      $features[$row['xfeature_id']] = $feature;
+    if ($feature['type'] === 'gene') {
+      $feature['subfeatures'] = (!empty($genes[$feature_id])) ? $genes[$feature_id]['subfeatures'] : array();
+      $genes[$feature_id] = $feature;
+    } elseif ($feature['type'] === 'mRNA') {
+      $genes[$parent_id]['subfeatures'][$feature_id] = $feature;
+    } elseif ($parent_id !== $feature_id) {
+      $subfeatures[$parent_id][] = $feature;
     } else {
-      $features[$row['parent_id']]['subfeatures'][] = $feature;
+      $features[] = $feature;
     }
 
   }
 
-  $data = array();
+  foreach ($genes as $gene_id => $gene_feature) {
 
-  $data['features'] = array_values($features);
+    foreach ($gene_feature['subfeatures'] as $mrna_id => $mrna_feature) {
+      if (!empty($subfeatures[$mrna_id])) {
+        $gene_feature['subfeatures'][$mrna_id]['subfeatures'] = $subfeatures[$mrna_id];
+      }
+    }
+
+    $gene_feature['subfeatures'] = array_values($gene_feature['subfeatures']);
+
+    $features[] = $gene_feature;
+
+  }
+
+  $data = array(
+    'features' => $features,
+  );
 
   return $data;
 

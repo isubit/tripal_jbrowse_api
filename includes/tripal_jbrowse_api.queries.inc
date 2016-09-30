@@ -98,6 +98,7 @@ const TRIPAL_JBROWSE_API_QUERY_REFSEQ = <<<'EOQ'
         AND
         type_id IN (select cvterm_id from {cvterm} cvterm join {cv} cv using (cv_id)
                     where cvterm.name = :sequence_type and cv.name = 'sequence')
+    ORDER BY seqlen DESC
     ;
 
 EOQ;
