@@ -118,8 +118,8 @@ function tripal_jbrowse_api_json_output($page_callback_result = NULL) {
 
 }
 
-function tripal_jbrowse_api_organism_load($organism_common_name) {
-  return chado_query(TRIPAL_JBROWSE_API_QUERY_ORGANISM_BY_COMMON_NAME, array(':organism_common_name' => $organism_common_name))->fetchObject();
+function tripal_jbrowse_api_organism_load($organism_id) {
+  return chado_query(TRIPAL_JBROWSE_API_QUERY_ORGANISM_BY_ID, array(':organism_id' => $organism_id))->fetchObject();
 }
 
 function tripal_jbrowse_api_callback_null() {
@@ -136,7 +136,7 @@ function tripal_jbrowse_api_callback_datasets() {
 
     $dataset = array(
       'name' => sprintf('%s %s (%s)', $row['genus'], $row['species'], $row['common_name']),
-      'url' => '?data=' . $GLOBALS['base_url'] . '/api/jbrowse/' . $row['common_name'],
+      'url' => '?data=' . $GLOBALS['base_url'] . '/api/jbrowse/' . $row['organism_id'],
     );
 
     $datasets[$row['organism_id']] = $dataset;
@@ -189,7 +189,7 @@ function tripal_jbrowse_api_callback_tracklist($organism) {
     'key' => 'Reference Sequence',
     'type' => 'JBrowse/View/Track/Sequence',
     'storeClass' => 'JBrowse/Store/SeqFeature/REST',
-    'baseUrl' => $GLOBALS['base_url'] . '/api/jbrowse/' . $organism->common_name . '/',
+    'baseUrl' => $GLOBALS['base_url'] . '/api/jbrowse/' . $organism->organism_id . '/',
     'query' => array(
       'sequence' => TRUE
     ),
@@ -210,8 +210,8 @@ function tripal_jbrowse_api_callback_tracklist($organism) {
 
   $data = array(
     'dataset_id' => $organism->organism_id,
-    'defaultTracks' => 'genes',
-    'refSeqs' => $GLOBALS['base_url'] . '/api/jbrowse/' . $organism->common_name . '/refSeqs.json',
+    'defaultTracks' => 'refseq,genes',
+    'refSeqs' => $GLOBALS['base_url'] . '/api/jbrowse/' . $organism->organism_id . '/refSeqs.json',
     'tracks' => array_merge($tracks, $other_tracks),
   ) + $datasets;
 

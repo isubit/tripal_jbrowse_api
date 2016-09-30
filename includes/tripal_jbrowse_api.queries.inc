@@ -7,6 +7,15 @@ const TRIPAL_JBROWSE_API_QUERY_ALL_ORGANISMS = <<<'EOQ'
         {organism} organism
 EOQ;
 
+const TRIPAL_JBROWSE_API_QUERY_ORGANISM_BY_ID = <<<'EOQ'
+    SELECT
+        organism_id, genus, species, common_name
+    FROM
+        {organism} organism
+    WHERE
+        organism_id = :organism_id
+EOQ;
+
 const TRIPAL_JBROWSE_API_QUERY_ORGANISM_BY_COMMON_NAME = <<<'EOQ'
     SELECT
         organism_id, genus, species, common_name
