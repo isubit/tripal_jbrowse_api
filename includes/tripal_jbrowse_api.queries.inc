@@ -37,7 +37,42 @@ const TRIPAL_JBROWSE_API_QUERY_SO_TYPE = <<<'EOQ'
     GROUP BY
         cvterm.name
         ;
+EOQ;
 
+const TRIPAL_JBROWSE_API_QUERY_SIMPLE_FEATURE_QUERY_NAME_EQUALS = <<<'EOQ'
+    SELECT
+        feature.name AS feature_name,
+        srcfeature.uniquename as feature_ref,
+        featureloc.fmin AS feature_start,
+        featureloc.fmax AS feature_end,
+        feature.uniquename AS feature_uniquename
+    FROM {feature} feature
+        LEFT JOIN
+        {featureloc} featureloc ON (feature.feature_id = featureloc.feature_id)
+        LEFT JOIN
+        {feature} srcfeature ON (srcfeature.feature_id = featureloc.srcfeature_id)
+    WHERE
+        (feature.organism_id = :organism_id)
+        AND 
+        (feature.name = :feature_name_query)
+EOQ;
+
+const TRIPAL_JBROWSE_API_QUERY_SIMPLE_FEATURE_QUERY_NAME_LIKE = <<<'EOQ'
+    SELECT
+        feature.name AS feature_name,
+        srcfeature.uniquename as feature_ref,
+        featureloc.fmin AS feature_start,
+        featureloc.fmax AS feature_end,
+        feature.uniquename AS feature_uniquename
+    FROM {feature} feature
+        LEFT JOIN
+        {featureloc} featureloc ON (feature.feature_id = featureloc.feature_id)
+        LEFT JOIN
+        {feature} srcfeature ON (srcfeature.feature_id = featureloc.srcfeature_id)
+    WHERE
+        (feature.organism_id = :organism_id)
+        AND 
+        (feature.name LIKE :feature_name_query)
 EOQ;
 
 const TRIPAL_JBROWSE_API_QUERY_SIMPLE_FEATURE_QUERY_WITH_PARENT = <<<'EOQ'

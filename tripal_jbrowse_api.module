@@ -43,6 +43,10 @@ function tripal_jbrowse_api_menu() {
     'page arguments' => array('tripal_jbrowse_api_callback_stats', 2),
   ) + $base;
 
+  $items['api/jbrowse/%tripal_jbrowse_api_organism/names'] = array(
+    'page arguments' => array('tripal_jbrowse_api_callback_names', 2),
+  ) + $base;
+
   $items['api/jbrowse/%tripal_jbrowse_api_organism/features/%'] = array(
     'page arguments' => array('tripal_jbrowse_api_callback_features', 2, 4),
   ) + $base;
@@ -211,6 +215,10 @@ function tripal_jbrowse_api_callback_tracklist($organism) {
   $data = array(
     'dataset_id' => $organism->organism_id,
     'defaultTracks' => 'refseq,genes',
+    'names' => array(
+      'type' => 'REST',
+      'url' => $GLOBALS['base_url'] . '/api/jbrowse/' . $organism->organism_id . '/names',
+    ),
     'refSeqs' => $GLOBALS['base_url'] . '/api/jbrowse/' . $organism->organism_id . '/refSeqs.json',
     'tracks' => array_merge($tracks, $other_tracks),
   ) + $datasets;
@@ -219,6 +227,39 @@ function tripal_jbrowse_api_callback_tracklist($organism) {
 
   return $data;
   
+}
+
+function tripal_jbrowse_api_callback_names($organism) {
+
+  $params = drupal_get_query_parameters();
+
+  if (!(isset($params['equals']) || isset($params['startswith']))) {
+    drupal_add_http_header('Status', '400 Bad Request');
+    return NULL;
+  }
+
+  if (isset($params['equals'])) {
+    $results = chado_query(TRIPAL_JBROWSE_API_QUERY_SIMPLE_FEATURE_QUERY_NAME_EQUALS, array(':organism_id' => $organism->organism_id, ':feature_name_query' => $params['equals']))->fetchAll(PDO::FETCH_ASSOC);
+  } else {
+    $results = chado_query(TRIPAL_JBROWSE_API_QUERY_SIMPLE_FEATURE_QUERY_NAME_LIKE, array(':organism_id' => $organism->organism_id, ':feature_name_query' => db_like($params['startswith']) .  '%'))->fetchAll(PDO::FETCH_ASSOC);
+  }
+
+  $matches = array_map(function($row) {
+    return array(
+      'name' => $row['feature_name'],
+      'location' => array(
+        'ref' => $row['feature_ref'],
+        'start' => (int) $row['feature_start'],
+        'end' => (int) $row['feature_end'],
+      ),
+      'objectName' => $row['feature_uniquename'],
+    );
+  }, $results);
+
+  $data = $matches;
+
+  return $data;
+
 }
 
 function tripal_jbrowse_api_callback_features($organism, $refseq) {
