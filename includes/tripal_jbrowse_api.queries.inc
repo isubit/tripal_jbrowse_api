@@ -72,7 +72,7 @@ const TRIPAL_JBROWSE_API_QUERY_SIMPLE_FEATURE_QUERY_NAME_LIKE = <<<'EOQ'
     WHERE
         (feature.organism_id = :organism_id)
         AND 
-        (feature.name LIKE :feature_name_query)
+        (feature.name LIKE :feature_name_query ESCAPE '\')
 EOQ;
 
 const TRIPAL_JBROWSE_API_QUERY_SIMPLE_FEATURE_QUERY_WITH_PARENT = <<<'EOQ'
