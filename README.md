@@ -16,7 +16,7 @@ Access to the API can be limited to authenticated users by removing the **Use JB
 
 # Adding custom tracks
 
-The [tripal\_downloads module](https://github.com/isubit/tripal_downloads) provides a content type for downloadable files. Individual downloads can optionally be exposed as JBrowse tracks through this API.
+The [tripal\_downloads](https://github.com/isubit/tripal_downloads) module provides a content type for downloadable files. Individual downloads can optionally be exposed as JBrowse tracks through this API.
 
 # License
 
