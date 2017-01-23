@@ -223,7 +223,8 @@ function tripal_jbrowse_api_callback_tracklist($organism) {
     'tracks' => array_merge($tracks, $other_tracks),
   ) + $datasets;
 
-  drupal_alter('jbrowse_tracklist', $data, clone $organism);
+  $immutable_organism = clone $organism;
+  drupal_alter('jbrowse_tracklist', $data, $immutable_organism);
 
   return $data;
   
