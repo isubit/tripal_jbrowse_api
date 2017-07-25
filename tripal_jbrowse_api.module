@@ -175,7 +175,7 @@ function tripal_jbrowse_api_callback_refseqs($organism) {
   $data = $refseqs;
 
   return $data;
-  
+
 }
 
 function tripal_jbrowse_api_callback_stats($organism) {
@@ -208,13 +208,23 @@ function tripal_jbrowse_api_callback_tracklist($organism) {
     'storeClass' => 'JBrowse/Store/SeqFeature/REST',
   );
 
+  $tracks[] = array(
+    'category' => 'Transcripts',
+    'label' => 'transcripts',
+    'transcriptType' => 'transcript',
+    'key' => $organism->common_name . ' transcript models',
+    'type' => 'JBrowse/View/Track/CanvasFeatures',
+    'trackType' => 'JBrowse/View/Track/CanvasFeatures',
+    'storeClass' => 'JBrowse/Store/SeqFeature/REST',
+  );
+
   $other_tracks = module_invoke_all('jbrowse_tracks', $organism);
 
   $datasets = tripal_jbrowse_api_callback_datasets();
 
   $data = array(
     'dataset_id' => $organism->organism_id,
-    'defaultTracks' => 'refseq,genes',
+    'defaultTracks' => 'refseq,genes,transcripts',
     'names' => array(
       'type' => 'REST',
       'url' => $GLOBALS['base_url'] . '/api/jbrowse/' . $organism->organism_id . '/names',
@@ -227,7 +237,7 @@ function tripal_jbrowse_api_callback_tracklist($organism) {
   drupal_alter('jbrowse_tracklist', $data, $immutable_organism);
 
   return $data;
-  
+
 }
 
 function tripal_jbrowse_api_callback_names($organism) {
@@ -283,7 +293,7 @@ function tripal_jbrowse_api_callback_features($organism, $refseq) {
 }
 
 function tripal_jbrowse_api_callback_features_sequence($organism, $refseq, $start, $end) {
-  
+
   $result = chado_query(TRIPAL_JBROWSE_API_QUERY_REFSEQ_SEQ, array(':organism_id' => $organism->organism_id, ':refseq' => $refseq, ':start' => $start, ':end' => $end - $start))->fetchAssoc();
 
   if (empty($result['seq'])) {
@@ -312,7 +322,7 @@ function tripal_jbrowse_api_callback_features_features($organism, $refseq, $star
   $subfeatures = array();
 
   foreach ($results as $row) {
-    
+
     $feature_id = $row['xfeature_id'];
     $parent_id = $row['parent_id'];
 
@@ -329,6 +339,8 @@ function tripal_jbrowse_api_callback_features_features($organism, $refseq, $star
       $feature['subfeatures'] = (!empty($genes[$feature_id])) ? $genes[$feature_id]['subfeatures'] : array();
       $genes[$feature_id] = $feature;
     } elseif ($feature['type'] === 'mRNA') {
+      $genes[$parent_id]['subfeatures'][$feature_id] = $feature;
+    } elseif ($feature['type'] === 'transcript') {
       $genes[$parent_id]['subfeatures'][$feature_id] = $feature;
     } elseif ($parent_id !== $feature_id) {
       $subfeatures[$parent_id][] = $feature;
