@@ -53,7 +53,7 @@ const TRIPAL_JBROWSE_API_QUERY_SIMPLE_FEATURE_QUERY_NAME_EQUALS = <<<'EOQ'
         {feature} srcfeature ON (srcfeature.feature_id = featureloc.srcfeature_id)
     WHERE
         (feature.organism_id = :organism_id)
-        AND 
+        AND
         (feature.name = :feature_name_query)
 EOQ;
 
@@ -71,7 +71,7 @@ const TRIPAL_JBROWSE_API_QUERY_SIMPLE_FEATURE_QUERY_NAME_LIKE = <<<'EOQ'
         {feature} srcfeature ON (srcfeature.feature_id = featureloc.srcfeature_id)
     WHERE
         (feature.organism_id = :organism_id)
-        AND 
+        AND
         (feature.name LIKE :feature_name_query ESCAPE '\')
 EOQ;
 
@@ -149,7 +149,7 @@ EOQ;
 
 const TRIPAL_JBROWSE_API_QUERY_REFSEQ_SEQ = <<<'EOQ'
     SELECT
-        substring(residues, :start::int, :end::int) as seq
+        substring(residues, :start::int +1, :end::int) as seq
     FROM
         {feature} feature
     WHERE
