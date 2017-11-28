@@ -206,6 +206,9 @@ function tripal_jbrowse_api_callback_tracklist($organism) {
     'type' => 'JBrowse/View/Track/CanvasFeatures',
     'trackType' => 'JBrowse/View/Track/CanvasFeatures',
     'storeClass' => 'JBrowse/Store/SeqFeature/REST',
+    'style' => array(
+      '_defaultLabelScale' => 120,
+    ),
   );
 
   $tracks[] = array(
@@ -216,6 +219,9 @@ function tripal_jbrowse_api_callback_tracklist($organism) {
     'type' => 'JBrowse/View/Track/CanvasFeatures',
     'trackType' => 'JBrowse/View/Track/CanvasFeatures',
     'storeClass' => 'JBrowse/Store/SeqFeature/REST',
+    'style' => array(
+      '_defaultLabelScale' => 120,
+    ),
   );
 
   $other_tracks = module_invoke_all('jbrowse_tracks', $organism);
