@@ -34,6 +34,10 @@ function tripal_jbrowse_api_menu() {
   $items['api/jbrowse/trackList.json'] = array(
     'page arguments' => array('tripal_jbrowse_api_callback_datasets'),
   ) + $base;
+  
+  $items['api/jbrowse/%tripal_jbrowse_api_organism/seq/refSeqs.json'] = array(
+    'page arguments' => array('tripal_jbrowse_api_callback_refseqs', 2),
+  ) + $base;
 
   $items['api/jbrowse/%tripal_jbrowse_api_organism/refSeqs.json'] = array(
     'page arguments' => array('tripal_jbrowse_api_callback_refseqs', 2),
