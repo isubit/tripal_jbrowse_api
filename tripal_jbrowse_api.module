@@ -19,6 +19,15 @@ function tripal_jbrowse_api_permission() {
  */
 function tripal_jbrowse_api_menu() {
 
+  $items['admin/tripal/extension/tripal_jbrowse_api'] = array(
+    'title' => 'Tripal JBrowse API',
+    'description' => 'Configure settings for the Tripal JBrowse API module.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tripal_jbrowse_api_settings'),
+    'access arguments' => array('administer tripal'),
+    'file' => 'tripal_jbrowse_api.admin.inc',
+  );
+
   $base = array(
     'type' => MENU_CALLBACK,
     'access callback' => 'user_access',
@@ -190,6 +199,8 @@ function tripal_jbrowse_api_callback_tracklist($organism) {
 
   $tracks = array();
 
+  $default_tracks = array();
+
   $tracks[] =  array(
     'category' => 'Assembly - ' . $organism->common_name,
     'useAsRefSeqStore' => TRUE,
@@ -203,30 +214,43 @@ function tripal_jbrowse_api_callback_tracklist($organism) {
     ),
   );
 
-  $tracks[] = array(
-    'category' => 'Genes',
-    'label' => 'genes',
-    'key' => $organism->common_name . ' gene models',
-    'type' => 'JBrowse/View/Track/CanvasFeatures',
-    'trackType' => 'JBrowse/View/Track/CanvasFeatures',
-    'storeClass' => 'JBrowse/Store/SeqFeature/REST',
-    'style' => array(
-      '_defaultLabelScale' => 120,
-    ),
-  );
+  $default_tracks[] = 'refseq';
 
-  $tracks[] = array(
-    'category' => 'Transcripts',
-    'label' => 'transcripts',
-    'transcriptType' => 'transcript',
-    'key' => $organism->common_name . ' transcript models',
-    'type' => 'JBrowse/View/Track/CanvasFeatures',
-    'trackType' => 'JBrowse/View/Track/CanvasFeatures',
-    'storeClass' => 'JBrowse/Store/SeqFeature/REST',
-    'style' => array(
-      '_defaultLabelScale' => 120,
-    ),
-  );
+  if (variable_get('tripal_jbrowse_api_' . $organism->organism_id. '_show_genes', TRUE)) {
+    $tracks[] = array(
+      'category' => 'Genes',
+      'label' => 'genes',
+      'key' => $organism->common_name . ' gene models',
+      'type' => 'JBrowse/View/Track/CanvasFeatures',
+      'trackType' => 'JBrowse/View/Track/CanvasFeatures',
+      'storeClass' => 'JBrowse/Store/SeqFeature/REST',
+      'style' => array(
+        '_defaultLabelScale' => 120,
+      ),
+    );
+    if (variable_get('tripal_jbrowse_api_' . $organism->organism_id. '_genes_is_default', TRUE)) {
+      $default_tracks[] = 'genes';
+    }
+
+  }
+
+  if (variable_get('tripal_jbrowse_api_' . $organism->organism_id. '_show_transcripts', TRUE)) {
+    $tracks[] = array(
+      'category' => 'Transcripts',
+      'label' => 'transcripts',
+      'transcriptType' => 'transcript',
+      'key' => $organism->common_name . ' transcript models',
+      'type' => 'JBrowse/View/Track/CanvasFeatures',
+      'trackType' => 'JBrowse/View/Track/CanvasFeatures',
+      'storeClass' => 'JBrowse/Store/SeqFeature/REST',
+      'style' => array(
+        '_defaultLabelScale' => 120,
+      ),
+    );
+    if (variable_get('tripal_jbrowse_api_' . $organism->organism_id. '_transcripts_is_default', TRUE)) {
+      $default_tracks[] = 'transcripts';
+    }
+  }
 
   $other_tracks = module_invoke_all('jbrowse_tracks', $organism);
 
@@ -234,7 +258,7 @@ function tripal_jbrowse_api_callback_tracklist($organism) {
 
   $data = array(
     'dataset_id' => $organism->organism_id,
-    'defaultTracks' => 'refseq,genes,transcripts',
+    'defaultTracks' => implode(',', $default_tracks),
     'names' => array(
       'type' => 'REST',
       'url' => $GLOBALS['base_url'] . '/api/jbrowse/' . $organism->organism_id . '/names',
